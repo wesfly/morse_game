@@ -201,9 +201,7 @@ fn morse_display_update_system(
     chars: Res<PushChar>,
 ) {
     for mut text in &mut query {
-        if chars.0.is_empty() {
-            **text = "Click to start".to_string();
-        } else {
+        if chars.0.is_empty() == false {
             **text = chars.0.iter().collect::<String>();
         }
     }
