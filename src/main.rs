@@ -7,6 +7,9 @@ const WORD_DELAY_THRESHOLD: f32 = 0.5;
 #[derive(Component)]
 struct CharacterDisplay;
 
+#[derive(Component)]
+struct MorseDisplay;
+
 // For pushing the current character to the check_morse_char fn
 #[derive(Default, Resource)]
 struct PushChar(Vec<char>);
@@ -53,30 +56,58 @@ impl Default for PauseTimer {
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2d);
 
-    let container = Node {
-        width: Val::Percent(100.0),
-        height: Val::Percent(100.0),
-        justify_content: JustifyContent::Center,
-        ..default()
-    };
-    // The letter indicator
-    let text = (
-        Text::new("Loading..."),
-        TextLayout::new_with_justify(JustifyText::Center),
-        TextFont {
-            // This font is loaded and will be used instead of the default font.
-            font: asset_server.load("fonts/Red_Hat_Display/static/RedHatDisplay-Bold.ttf"),
-            font_size: 144.0,
+    // Create container
+    let container_entity = commands
+        .spawn(Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Column,
             ..default()
-        },
-        Node {
-            bottom: Val::Percent(-50.),
-            ..default()
-        },
-        CharacterDisplay,
-    );
+        })
+        .id();
 
-    commands.spawn((container, children![text]));
+    // Create character display text
+    let character_text = commands
+        .spawn((
+            Text::new(""),
+            TextLayout::new_with_justify(JustifyText::Center),
+            TextFont {
+                font: asset_server.load("fonts/Red_Hat_Display/static/RedHatDisplay-Bold.ttf"),
+                font_size: 144.0,
+                ..default()
+            },
+            Node {
+                margin: UiRect::all(Val::Px(10.0)),
+                ..default()
+            },
+            CharacterDisplay,
+        ))
+        .id();
+
+    // Create morse display text
+    let morse_text = commands
+        .spawn((
+            Text::new("Click to start"),
+            TextLayout::new_with_justify(JustifyText::Center),
+            TextFont {
+                font: asset_server.load("fonts/Red_Hat_Display/static/RedHatDisplay-Regular.ttf"),
+                font_size: 28.0,
+                ..default()
+            },
+            Node {
+                margin: UiRect::all(Val::Px(10.0)),
+                ..default()
+            },
+            MorseDisplay,
+        ))
+        .id();
+
+    // Set up parent-child relationships
+    commands
+        .entity(container_entity)
+        .add_children(&[character_text, morse_text]);
 }
 
 fn check_morse_char(chars: &mut ResMut<PushChar>, mut display_char: ResMut<CurrentChar>) {
@@ -158,6 +189,23 @@ fn text_update_system(
         for mut span in &mut query {
             **span = character.0.to_string();
         }
+    } else {
+        for mut span in &mut query {
+            **span = ' '.to_string();
+        }
+    }
+}
+
+fn morse_display_update_system(
+    mut query: Query<&mut Text, With<MorseDisplay>>,
+    chars: Res<PushChar>,
+) {
+    for mut text in &mut query {
+        if chars.0.is_empty() {
+            **text = "Click to start".to_string();
+        } else {
+            **text = chars.0.iter().collect::<String>();
+        }
     }
 }
 
@@ -220,6 +268,13 @@ fn main() {
         .init_resource::<PushChar>()
         .init_resource::<CurrentChar>()
         .add_systems(Startup, setup)
-        .add_systems(Update, (register_input, text_update_system))
+        .add_systems(
+            Update,
+            (
+                register_input,
+                text_update_system,
+                morse_display_update_system,
+            ),
+        )
         .run();
 }
