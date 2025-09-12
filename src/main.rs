@@ -2,7 +2,8 @@ use bevy::{prelude::*, time::Stopwatch};
 use std::collections::HashMap;
 
 const CLICK_DURATION_THRESHOLD: f32 = 0.15;
-const WORD_DELAY_THRESHOLD: f32 = 0.5;
+const NEW_CHARACTER_DELAY: f32 = 0.5;
+const FREQUENCY: f32 = 440.;
 
 #[derive(Component)]
 struct CharacterDisplay;
@@ -43,6 +44,9 @@ struct PauseTimer {
     stopwatch: Stopwatch,
     is_activated: bool,
 }
+
+#[derive(Default, Resource)]
+struct CurrentAudio(Option<Entity>);
 
 impl Default for PauseTimer {
     fn default() -> Self {
@@ -212,6 +216,9 @@ fn register_input(
     mut timer: ResMut<PressTimer>,
     mut idle_timer: ResMut<PauseTimer>,
     mut chars: ResMut<PushChar>,
+    mut commands: Commands,
+    mut pitch_assets: ResMut<Assets<Pitch>>,
+    mut current_audio: ResMut<CurrentAudio>,
     current_char: ResMut<CurrentChar>,
     time: Res<Time>,
 ) {
@@ -222,6 +229,14 @@ fn register_input(
         info!("not pressed for {:.2}", idle_timer.stopwatch.elapsed_secs());
 
         idle_timer.is_activated = false;
+
+        // Start continuous audio playback
+        let audio_entity = commands
+            .spawn(AudioPlayer(
+                pitch_assets.add(Pitch::new(FREQUENCY, std::time::Duration::from_secs(60))), // Long duration
+            ))
+            .id();
+        current_audio.0 = Some(audio_entity);
     }
 
     if mouse.pressed(MouseButton::Left) && timer.is_pressed {
@@ -239,6 +254,12 @@ fn register_input(
 
         timer.is_pressed = false;
 
+        // Stop the audio
+        if let Some(audio_entity) = current_audio.0 {
+            commands.entity(audio_entity).despawn();
+            current_audio.0 = None;
+        }
+
         idle_timer.stopwatch.reset();
         idle_timer.is_activated = true;
     }
@@ -246,7 +267,7 @@ fn register_input(
     // Tick the idle timer
     if idle_timer.is_activated {
         idle_timer.stopwatch.tick(time.delta());
-        if idle_timer.stopwatch.elapsed_secs() >= WORD_DELAY_THRESHOLD {
+        if idle_timer.stopwatch.elapsed_secs() >= NEW_CHARACTER_DELAY {
             check_morse_char(&mut chars, current_char);
         }
     }
@@ -265,6 +286,7 @@ fn main() {
         .init_resource::<PauseTimer>()
         .init_resource::<PushChar>()
         .init_resource::<CurrentChar>()
+        .init_resource::<CurrentAudio>()
         .add_systems(Startup, setup)
         .add_systems(
             Update,
