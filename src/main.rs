@@ -275,6 +275,7 @@ fn register_input(
 
 fn main() {
     App::new()
+        .insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.11)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Morse".into(),
