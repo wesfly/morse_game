@@ -114,7 +114,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .add_children(&[character_text, morse_text]);
 }
 
-fn check_morse_char(chars: &mut ResMut<PushChar>, mut display_char: ResMut<CurrentChar>) {
+fn check_morse_char(
+    is_final: bool,
+    chars: &mut ResMut<PushChar>,
+    display_char: &mut ResMut<CurrentChar>,
+) {
     let morse_codes = HashMap::from([
         // Letters
         ('A', "•-"),
@@ -181,8 +185,9 @@ fn check_morse_char(chars: &mut ResMut<PushChar>, mut display_char: ResMut<Curre
             display_char.0 = code.0;
         }
     }
-
-    chars.0.clear();
+    if is_final {
+        chars.0.clear();
+    }
 }
 
 fn text_update_system(
@@ -219,7 +224,7 @@ fn register_input(
     mut commands: Commands,
     mut pitch_assets: ResMut<Assets<Pitch>>,
     mut current_audio: ResMut<CurrentAudio>,
-    current_char: ResMut<CurrentChar>,
+    mut current_char: ResMut<CurrentChar>,
     time: Res<Time>,
 ) {
     if mouse.just_pressed(MouseButton::Left) {
@@ -262,13 +267,14 @@ fn register_input(
 
         idle_timer.stopwatch.reset();
         idle_timer.is_activated = true;
+        check_morse_char(false, &mut chars, &mut current_char);
     }
 
     // Tick the idle timer
     if idle_timer.is_activated {
         idle_timer.stopwatch.tick(time.delta());
         if idle_timer.stopwatch.elapsed_secs() >= NEW_CHARACTER_DELAY {
-            check_morse_char(&mut chars, current_char);
+            check_morse_char(true, &mut chars, &mut current_char);
         }
     }
 }
