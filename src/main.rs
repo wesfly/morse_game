@@ -11,9 +11,15 @@ struct CharacterDisplay;
 #[derive(Component)]
 struct MorseDisplay;
 
+#[derive(Component)]
+struct PlainHistory;
+
 // For pushing the current character to the check_morse_char fn
 #[derive(Default, Resource)]
 struct PushChar(Vec<char>);
+
+#[derive(Resource, Default)]
+struct CharHistory(String);
 
 #[derive(Resource)]
 struct CurrentChar(char);
@@ -108,16 +114,34 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ))
         .id();
 
+    let plain_history = commands
+        .spawn((
+            Text::new("History"),
+            TextLayout::new_with_justify(JustifyText::Center),
+            TextFont {
+                font: asset_server.load("fonts/Red_Hat_Display/static/RedHatDisplay-Regular.ttf"),
+                font_size: 28.0,
+                ..default()
+            },
+            Node {
+                margin: UiRect::all(Val::Px(10.0)),
+                ..default()
+            },
+            PlainHistory,
+        ))
+        .id();
+
     // Set up parent-child relationships
     commands
         .entity(container_entity)
-        .add_children(&[character_text, morse_text]);
+        .add_children(&[character_text, morse_text, plain_history]);
 }
 
 fn check_morse_char(
     is_final: bool,
     chars: &mut ResMut<PushChar>,
     display_char: &mut ResMut<CurrentChar>,
+    char_history: &mut ResMut<CharHistory>,
 ) {
     let morse_codes = HashMap::from([
         // Letters
@@ -181,8 +205,10 @@ fn check_morse_char(
 
     for code in morse_codes {
         if code.1 == chars.0.iter().collect::<String>() {
-            info!("{}", code.0);
             display_char.0 = code.0;
+            if is_final {
+                char_history.0.push_str(code.0.to_string().as_str());
+            }
         }
     }
     if is_final {
@@ -216,6 +242,15 @@ fn morse_display_update_system(
     }
 }
 
+fn history_display_update_system(
+    mut query: Query<&mut Text, With<PlainHistory>>,
+    history: Res<CharHistory>,
+) {
+    for mut text in &mut query {
+        **text = history.0.clone();
+    }
+}
+
 fn register_input(
     mouse: Res<ButtonInput<MouseButton>>,
     mut timer: ResMut<PressTimer>,
@@ -225,6 +260,7 @@ fn register_input(
     mut pitch_assets: ResMut<Assets<Pitch>>,
     mut current_audio: ResMut<CurrentAudio>,
     mut current_char: ResMut<CurrentChar>,
+    mut char_history: ResMut<CharHistory>,
     time: Res<Time>,
 ) {
     if mouse.just_pressed(MouseButton::Left) {
@@ -267,14 +303,18 @@ fn register_input(
 
         idle_timer.stopwatch.reset();
         idle_timer.is_activated = true;
-        check_morse_char(false, &mut chars, &mut current_char);
+        check_morse_char(false, &mut chars, &mut current_char, &mut char_history);
+    }
+
+    if mouse.just_pressed(MouseButton::Right) {
+        char_history.0.clear();
     }
 
     // Tick the idle timer
     if idle_timer.is_activated {
         idle_timer.stopwatch.tick(time.delta());
         if idle_timer.stopwatch.elapsed_secs() >= NEW_CHARACTER_DELAY {
-            check_morse_char(true, &mut chars, &mut current_char);
+            check_morse_char(true, &mut chars, &mut current_char, &mut char_history);
         }
     }
 }
@@ -294,6 +334,7 @@ fn main() {
         .init_resource::<PushChar>()
         .init_resource::<CurrentChar>()
         .init_resource::<CurrentAudio>()
+        .init_resource::<CharHistory>()
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -301,6 +342,7 @@ fn main() {
                 register_input,
                 text_update_system,
                 morse_display_update_system,
+                history_display_update_system,
             ),
         )
         .run();
