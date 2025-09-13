@@ -63,8 +63,9 @@ impl Default for PauseTimer {
     }
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut volume: ResMut<GlobalVolume>) {
     commands.spawn(Camera2d);
+    volume.volume = bevy::audio::Volume::Linear(0.5);
 
     // Create container
     let container_entity = commands
