@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 // Dot vs. dash duration
 const CLICK_DURATION_THRESHOLD: f32 = 0.15;
-// The time it needs between two inputs to count as a new word
+// The time it needs between two inputs to count as a new character
 const NEW_CHARACTER_DELAY: f32 = 0.5;
 // Tone frequency
 const FREQUENCY: f32 = 440.;
