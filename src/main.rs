@@ -327,7 +327,7 @@ fn main() {
         .insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.11)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                title: "Morse".into(),
+                title: "Morse Game".into(),
                 ..default()
             }),
             ..default()
