@@ -1,8 +1,11 @@
 use bevy::{prelude::*, time::Stopwatch};
 use std::collections::HashMap;
 
+// Dot vs. dash duration
 const CLICK_DURATION_THRESHOLD: f32 = 0.15;
+// The time it needs between two inputs to count as a new word
 const NEW_CHARACTER_DELAY: f32 = 0.5;
+// Tone frequency
 const FREQUENCY: f32 = 440.;
 
 #[derive(Component)]
@@ -132,7 +135,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut volume: Res
         ))
         .id();
 
-    // Set up parent-child relationships
     commands
         .entity(container_entity)
         .add_children(&[character_text, morse_text, plain_history]);
