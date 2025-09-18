@@ -273,6 +273,7 @@ fn register_input(
         timer.stopwatch.reset();
         timer.is_pressed = true;
 
+        #[cfg(debug_assertions)]
         info!("not pressed for {:.2}", idle_timer.stopwatch.elapsed_secs());
 
         idle_timer.is_activated = false;
