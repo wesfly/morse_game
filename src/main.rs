@@ -325,6 +325,10 @@ fn register_input(
             check_morse_char(true, &mut chars, &mut current_char, &mut char_history);
         }
     }
+
+    if keyboard.just_pressed(KeyCode::Backspace) {
+        char_history.0.pop();
+    }
 }
 
 fn main() {
