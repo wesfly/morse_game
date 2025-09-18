@@ -1,10 +1,12 @@
 use bevy::{prelude::*, time::Stopwatch};
 use std::collections::HashMap;
 
+// This kinda controlls the difficulty. Feel free to tweak around.
+
 // Dot vs. dash duration
 const CLICK_DURATION_THRESHOLD: f32 = 0.15;
 // The time it needs between two inputs to count as a new character
-const NEW_CHARACTER_DELAY: f32 = 0.5;
+const NEW_CHARACTER_DELAY: f32 = 0.2;
 // Tone frequency
 const FREQUENCY: f32 = 440.;
 
@@ -256,6 +258,7 @@ fn history_display_update_system(
 
 fn register_input(
     mouse: Res<ButtonInput<MouseButton>>,
+    keyboard: Res<ButtonInput<KeyCode>>,
     mut timer: ResMut<PressTimer>,
     mut idle_timer: ResMut<PauseTimer>,
     mut chars: ResMut<PushChar>,
@@ -266,7 +269,7 @@ fn register_input(
     mut char_history: ResMut<CharHistory>,
     time: Res<Time>,
 ) {
-    if mouse.just_pressed(MouseButton::Left) {
+    if mouse.just_pressed(MouseButton::Left) || keyboard.just_pressed(KeyCode::Enter) {
         timer.stopwatch.reset();
         timer.is_pressed = true;
 
@@ -283,11 +286,13 @@ fn register_input(
         current_audio.0 = Some(audio_entity);
     }
 
-    if mouse.pressed(MouseButton::Left) && timer.is_pressed {
+    if (mouse.pressed(MouseButton::Left) || keyboard.pressed(KeyCode::Enter)) && timer.is_pressed {
         timer.stopwatch.tick(time.delta());
     }
 
-    if mouse.just_released(MouseButton::Left) && timer.is_pressed {
+    if (mouse.just_released(MouseButton::Left) || keyboard.just_released(KeyCode::Enter))
+        && timer.is_pressed
+    {
         let press_duration = timer.stopwatch.elapsed_secs();
 
         if press_duration < CLICK_DURATION_THRESHOLD {
@@ -309,7 +314,7 @@ fn register_input(
         check_morse_char(false, &mut chars, &mut current_char, &mut char_history);
     }
 
-    if mouse.just_pressed(MouseButton::Right) {
+    if mouse.just_pressed(MouseButton::Right) || keyboard.just_pressed(KeyCode::Space) {
         char_history.0.clear();
     }
 
