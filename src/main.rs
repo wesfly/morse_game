@@ -1,12 +1,13 @@
 use bevy::{prelude::*, time::Stopwatch};
 use std::collections::HashMap;
 
-// This kinda controlls the difficulty. Feel free to tweak around.
+// The following lines control the difficulty. Feel free to tweak around.
 
 // Dot vs. dash duration
 const CLICK_DURATION_THRESHOLD: f32 = 0.15;
-// The time it needs between two inputs to count as a new character
+// The time it takes between two inputs to count as a new character, 0.2 is for the advanced
 const NEW_CHARACTER_DELAY: f32 = 0.2;
+
 // Tone frequency
 const FREQUENCY: f32 = 440.;
 
