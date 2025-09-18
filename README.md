@@ -1,8 +1,8 @@
 # Morse Game
 
-This is a little game made in bevy to learn Morse.
-The controls are simple, just click with your left mouse button or press enter.
-To clear the history, press your right mouse button or space on your keyboard.
-To clear only the last character in the history, press backspace.
+This is a little game made in Bevy to learn Morse.
+The controls are easy to use. You can either click with your left mouse button or press the 'Enter' key.
+To clear the history, press the right mouse button or space bar on your keyboard.
+To clear the last character in the history, press the backspace key.
 
 ![Screenshot](screenshot.png)
