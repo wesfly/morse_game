@@ -9,7 +9,7 @@ const CLICK_DURATION_THRESHOLD: f32 = 0.15;
 const NEW_CHARACTER_DELAY: f32 = 0.2;
 
 // Tone frequency
-const FREQUENCY: f32 = 440.;
+const FREQUENCY: f32 = 600.;
 
 #[derive(Component)]
 struct CharacterDisplay;
