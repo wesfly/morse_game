@@ -274,9 +274,6 @@ fn register_input(
         timer.stopwatch.reset();
         timer.is_pressed = true;
 
-        #[cfg(debug_assertions)]
-        info!("not pressed for {:.2}", idle_timer.stopwatch.elapsed_secs());
-
         idle_timer.is_activated = false;
 
         // Start continuous audio playback
@@ -299,8 +296,10 @@ fn register_input(
 
         if press_duration < CLICK_DURATION_THRESHOLD {
             chars.0.push('•');
+            info!("dot");
         } else if press_duration >= CLICK_DURATION_THRESHOLD {
             chars.0.push('-');
+            info!("dash");
         }
 
         timer.is_pressed = false;
@@ -318,6 +317,7 @@ fn register_input(
 
     if mouse.just_pressed(MouseButton::Right) || keyboard.just_pressed(KeyCode::Space) {
         char_history.0.clear();
+        info!("clearing history")
     }
 
     // Tick the idle timer
@@ -330,6 +330,7 @@ fn register_input(
 
     if keyboard.just_pressed(KeyCode::Backspace) {
         char_history.0.pop();
+        info!("deleted last character of history");
     }
 }
 
