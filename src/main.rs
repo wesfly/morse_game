@@ -89,7 +89,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut volume: Res
     let character_text = commands
         .spawn((
             Text::new(""),
-            TextLayout::new_with_justify(JustifyText::Center),
+            TextLayout::new_with_justify(Justify::Center),
             TextFont {
                 font: asset_server.load("fonts/Red_Hat_Display/static/RedHatDisplay-Bold.ttf"),
                 font_size: 144.0,
@@ -107,7 +107,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut volume: Res
     let morse_text = commands
         .spawn((
             Text::new("Click to start"),
-            TextLayout::new_with_justify(JustifyText::Center),
+            TextLayout::new_with_justify(Justify::Center),
             TextFont {
                 font: asset_server.load("fonts/Red_Hat_Display/static/RedHatDisplay-Regular.ttf"),
                 font_size: 28.0,
@@ -124,7 +124,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>, mut volume: Res
     let plain_history = commands
         .spawn((
             Text::new("History"),
-            TextLayout::new_with_justify(JustifyText::Center),
+            TextLayout::new_with_justify(Justify::Center),
             TextFont {
                 font: asset_server.load("fonts/Red_Hat_Display/static/RedHatDisplay-Regular.ttf"),
                 font_size: 28.0,
