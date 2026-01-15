@@ -296,9 +296,13 @@ fn register_input(
 
         if press_duration < CLICK_DURATION_THRESHOLD {
             chars.0.push('•');
+
+            #[cfg(debug_assertions)]
             info!("dot");
         } else if press_duration >= CLICK_DURATION_THRESHOLD {
             chars.0.push('-');
+
+            #[cfg(debug_assertions)]
             info!("dash");
         }
 
