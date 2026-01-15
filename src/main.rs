@@ -1,15 +1,25 @@
 use bevy::{prelude::*, time::Stopwatch};
-use std::collections::HashMap;
-
-// The following lines control the difficulty. Feel free to tweak around.
-
-// Dot vs. dash duration
-const CLICK_DURATION_THRESHOLD: f32 = 0.15;
-// The time it takes between two inputs to count as a new character, 0.2 is for the advanced
-const NEW_CHARACTER_DELAY: f32 = 0.2;
+use serde::Deserialize;
+use std::{collections::HashMap, fs};
 
 // Tone frequency
 const FREQUENCY: f32 = 600.;
+
+#[derive(Resource, Deserialize)]
+struct Settings {
+    // Dot vs. dash duration
+    click_duration_threshold: f32,
+    // The time it takes between two inputs to count as a new character, 0.2 is for the advanced
+    new_character_delay: f32,
+}
+
+impl Settings {
+    fn fetch() -> Self {
+        let json_data = fs::read_to_string("settings.json").unwrap();
+        let settings: Self = serde_json::from_str(&json_data).unwrap();
+        settings
+    }
+}
 
 #[derive(Component)]
 struct CharacterDisplay;
@@ -268,6 +278,7 @@ fn register_input(
     mut current_audio: ResMut<CurrentAudio>,
     mut current_char: ResMut<CurrentChar>,
     mut char_history: ResMut<CharHistory>,
+    settings: Res<Settings>,
     time: Res<Time>,
 ) {
     if mouse.just_pressed(MouseButton::Left) || keyboard.just_pressed(KeyCode::Enter) {
@@ -294,12 +305,12 @@ fn register_input(
     {
         let press_duration = timer.stopwatch.elapsed_secs();
 
-        if press_duration < CLICK_DURATION_THRESHOLD {
+        if press_duration < settings.click_duration_threshold {
             chars.0.push('•');
 
             #[cfg(debug_assertions)]
             info!("dot");
-        } else if press_duration >= CLICK_DURATION_THRESHOLD {
+        } else if press_duration >= settings.click_duration_threshold {
             chars.0.push('-');
 
             #[cfg(debug_assertions)]
@@ -327,7 +338,7 @@ fn register_input(
     // Tick the idle timer
     if idle_timer.is_activated {
         idle_timer.stopwatch.tick(time.delta());
-        if idle_timer.stopwatch.elapsed_secs() >= NEW_CHARACTER_DELAY {
+        if idle_timer.stopwatch.elapsed_secs() >= settings.new_character_delay {
             check_morse_char(true, &mut chars, &mut current_char, &mut char_history);
         }
     }
@@ -341,6 +352,7 @@ fn register_input(
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.11)))
+        .insert_resource(Settings::fetch())
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Morse Game".into(),
